@@ -2,7 +2,9 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as mpimg
+
+from torch.utils.data import Dataset, Dataloader
+
 from skimage import io
 
 #dataset path
@@ -24,6 +26,35 @@ def show_landmarks(image,landmark_id):
     plt.imshow(image)
     plt.text(1,1,landmark_id, fontsize=20)
     plt.show()
+
+class LandmarkDataset(Dataset):
+    """google landmark dataset"""
+
+    def __init__(self,csv_file,root_dir, transform=None):
+        """
+        csv_file(str) : path of csv file with url, file names and landmark_id
+        root_dir(str) : path of images folder
+        transform(optional) : transformation of image
+        """
+        self.landmarks_frame = pd.read_csv(csv_file)
+        self.root_dir = root_dir
+        self.transform = transform
+
+
+    def __len__(self):
+        return(self.landmarks_frame)
+    def __classes__(self):
+        return(landmarks_frame.nunique())
+    def __getitem__(self,idx):
+        img_name = os.path.join(self.root_dir,str(self.landmarks_frame.iloc[idx,0])+'.jpg')
+        image = io.imread(img_name)
+        landmark_id = self.landmarks_frame.iloc[idx,2]
+        sample = {'image':image, 'landmark_id':landmark_id}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
 
 if __name__ == "__main__":
     plt.figure()
