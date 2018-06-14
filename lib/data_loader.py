@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 from torch.utils.data import Dataset, DataLoader
 
-from skimage import io
-
+from skimage import io, transform
+from torchvision import transforms, utils
 
 def show_landmarks(image,landmark_id,text=False):
     """Show image with landmark ids"""
@@ -46,6 +46,67 @@ class Rescale(object):
 
     args: output_size(tuple or int): Desired size
     """
+    def __init__(self,output_size):
+        assert isinstance(output_size,(int,tuple))
+        self.output_size = output_size
+
+    def __call__(self,sample):
+        image,landmark_id = sample['image'], sample['landmark_id']
+
+        h,w = image.shape[:2]
+        if isinstance(self.output_size,int):
+            #to ensure aspect ratio
+            if h > w:
+                new_h, new_w = self.output_size * h/w, self.output_size
+            else:
+                new_h, new_w = self.output_size, self.output_size * w/h
+        else:
+            new_h, new_w = self.output_size
+
+        new_h, new_h = int(new_h) , int(new_w)
+        img = transform.resize(image,(new_h,new_w))
+        return ({"image":img, "landmark_id":landmark_id})
+
+class RandomCrop(object):
+    """
+    Crop randomly the image in a sample
+    Args(tuple or int): desired size, int if a square crop is desired
+    """
+    def __init__(self,output_size):
+        assert isinstance(output_size, (int, tuple))
+        if isinstance(output_size,int):
+            self.output_size = (output_size, output_size)
+        else:
+            assert len(output_size)==2
+            self.output_size = output_size
+
+    def __call__(self,sample):
+        image,landmark_id = sample['image'], sample['landmark_id']
+
+        h,w = image.shape[:2]
+        new_h, new_w = self.output_size
+
+        top = np.random.randint(0, h-new_h)
+        left = np.random.randint(0, w-new_w)
+
+        image = image[top:top+new_h,
+                left:left+new_w]
+
+        return {'image':image, 'landmark_id':landmark_id}
+
+class ToTensor(object):
+    """
+    Convert ndarrays to sample Tensors
+    """
+
+    def __call__(self, sample):
+        image, landmark_id = sample['image'], sample['landmark_id']
+        #numpy image: H x W x C
+        #torch format: C x H x W
+        image = image.transpose((2,0,1))
+        return {'image':torch.from_numpy(image),
+                'landmark_id':torch.from_numpy(landmark_id)}
+
 
 if __name__ == "__main__":
     landmarks_dataset = LandmarkDataset(csv_file='data/train.csv', root_dir='data/train')
@@ -63,6 +124,20 @@ if __name__ == "__main__":
         if i == 3:
             plt.show()
             break
+
+    scale = Rescale(64)
+    crop = RandomCrop((28,25))
+    composed = transforms.Compose([Rescale(256), RandomCrop(224)])
+    fig = plt.figure()
+    sample = landmarks_dataset[3]
+    for i, trnsfm in enumerate([scale, crop, composed]):
+        transformed_sample = trnsfm(sample)
+
+        ax = plt.subplot(1,3,i+1)
+        plt.tight_layout()
+        ax.set_title(type(trnsfm).__name__)
+        show_landmarks(**transformed_sample)
+    plt.show()
 ### Scratch Pad
 """
 print("Frequency")
