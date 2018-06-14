@@ -107,6 +107,15 @@ class ToTensor(object):
         return {'image':torch.from_numpy(image),
                 'landmark_id':torch.from_numpy(np.array(landmark_id))}
 
+#show dataloader helper function
+def show_landmarks_batch(sample_batch):
+    image_batch, landmark_id_batch = sample_batch['image'], sample_batch['landmark_id']
+    batch_size = len(image_batch)
+    im_size = image_batch.size(2)
+
+    grid = utils.make_grid(image_batch)
+    plt.imshow(grid.numpy().transpose((1,2,0)))
+
 
 if __name__ == "__main__":
     landmarks_dataset = LandmarkDataset(csv_file='data/train.csv', root_dir='data/train',
@@ -115,27 +124,23 @@ if __name__ == "__main__":
                RandomCrop(128),
                ToTensor()
                ]))
-    #landmarks_dataset = LandmarkDataset(csv_file='data/train.csv', root_dir='data/train')
-    """
-    scale = Rescale(64)
-    crop = RandomCrop((28,25))
-    composed = transforms.Compose([Rescale(256), RandomCrop(224)])
-    fig = plt.figure()
-    sample = landmarks_dataset[3]
-    for i, trnsfm in enumerate([scale, crop, composed]):
-        transformed_sample = trnsfm(sample)
 
-        ax = plt.subplot(1,3,i+1)
-        plt.tight_layout()
-        ax.set_title(type(trnsfm).__name__)
-        show_landmarks(**transformed_sample)
-    plt.show()
-    """
     for i in range(len(landmarks_dataset)):
         sample = landmarks_dataset[i]
         print(i, sample['image'].shape,sample['landmark_id'])
 
         if i==3:
+            break
+
+    dataloader = DataLoader(landmarks_dataset, batch_size=8,shuffle=False,num_workers=4)
+    for i_batch, sample_batch in enumerate(dataloader):
+        print(i_batch, sample_batch['image'].size(), sample_batch['landmark_id'])
+
+        #observe 5th batch
+        if i_batch == 4:
+            plt.figure()
+            show_landmarks_batch(sample_batch)
+            plt.show()
             break
 
 
