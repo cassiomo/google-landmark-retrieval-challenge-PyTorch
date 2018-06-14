@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
+import torch
 from torch.utils.data import Dataset, DataLoader
 
 from skimage import io, transform
@@ -105,11 +105,67 @@ class ToTensor(object):
         #torch format: C x H x W
         image = image.transpose((2,0,1))
         return {'image':torch.from_numpy(image),
-                'landmark_id':torch.from_numpy(landmark_id)}
+                'landmark_id':torch.from_numpy(np.array(landmark_id))}
 
 
 if __name__ == "__main__":
-    landmarks_dataset = LandmarkDataset(csv_file='data/train.csv', root_dir='data/train')
+    landmarks_dataset = LandmarkDataset(csv_file='data/train.csv', root_dir='data/train',
+           transform=transforms.Compose([
+               Rescale((123,245)),
+               RandomCrop(128),
+               ToTensor()
+               ]))
+    #landmarks_dataset = LandmarkDataset(csv_file='data/train.csv', root_dir='data/train')
+    """
+    scale = Rescale(64)
+    crop = RandomCrop((28,25))
+    composed = transforms.Compose([Rescale(256), RandomCrop(224)])
+    fig = plt.figure()
+    sample = landmarks_dataset[3]
+    for i, trnsfm in enumerate([scale, crop, composed]):
+        transformed_sample = trnsfm(sample)
+
+        ax = plt.subplot(1,3,i+1)
+        plt.tight_layout()
+        ax.set_title(type(trnsfm).__name__)
+        show_landmarks(**transformed_sample)
+    plt.show()
+    """
+    for i in range(len(landmarks_dataset)):
+        sample = landmarks_dataset[i]
+        print(i, sample['image'].shape,sample['landmark_id'])
+
+        if i==3:
+            break
+
+
+
+
+### Scratch Pad
+
+"""
+print("Frequency")
+print(landmarks_data_tr.nunique())
+print(landmarks_data_te.nunique())
+print(landmarks_data_tr.landmark_id.value_counts().head())
+print(landmarks_data_tr.landmark_id.value_counts().sum())
+print(landmarks_data_tr.landmark_id.value_counts().head()/(landmarks_data_tr.landmark_id.value_counts().sum()))
+plt.figure()
+plt.imshow(io.imread(os.path.join(folder,_path,"train",img_name)))
+plt.show()
+#dataset path
+folder = '/home/pramod/work/google-landmark-retrieval-challenge-PyTorch/'
+_path = 'data/'
+landmarks_data_tr = pd.read_csv(folder+_path+'/train.csv')
+landmarks_data_te = pd.read_csv(folder+_path+'/test.csv')
+
+print(landmarks_data_tr.head())
+n = 50
+img_name = str(landmarks_data_tr.iloc[n,0])+'.jpg'
+landmark_id = landmarks_data_tr.iloc[n,2]
+
+print("Image Name: {}".format(img_name))
+print("Image Category: {}".format(landmark_id))
     fig = plt.figure()
     for i in range(len(landmarks_dataset)):
         sample = landmarks_dataset[i]
@@ -138,28 +194,4 @@ if __name__ == "__main__":
         ax.set_title(type(trnsfm).__name__)
         show_landmarks(**transformed_sample)
     plt.show()
-### Scratch Pad
-"""
-print("Frequency")
-print(landmarks_data_tr.nunique())
-print(landmarks_data_te.nunique())
-print(landmarks_data_tr.landmark_id.value_counts().head())
-print(landmarks_data_tr.landmark_id.value_counts().sum())
-print(landmarks_data_tr.landmark_id.value_counts().head()/(landmarks_data_tr.landmark_id.value_counts().sum()))
-plt.figure()
-plt.imshow(io.imread(os.path.join(folder,_path,"train",img_name)))
-plt.show()
-#dataset path
-folder = '/home/pramod/work/google-landmark-retrieval-challenge-PyTorch/'
-_path = 'data/'
-landmarks_data_tr = pd.read_csv(folder+_path+'/train.csv')
-landmarks_data_te = pd.read_csv(folder+_path+'/test.csv')
-
-print(landmarks_data_tr.head())
-n = 50
-img_name = str(landmarks_data_tr.iloc[n,0])+'.jpg'
-landmark_id = landmarks_data_tr.iloc[n,2]
-
-print("Image Name: {}".format(img_name))
-print("Image Category: {}".format(landmark_id))
 """
