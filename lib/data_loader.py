@@ -1,3 +1,4 @@
+import pdb
 import os
 import pandas as pd
 import numpy as np
@@ -31,14 +32,17 @@ class LandmarkDataset(Dataset):
         return len(self.landmarks_frame)
     def __getitem__(self,idx):
         img_name = os.path.join(self.root_dir,str(self.landmarks_frame.iloc[idx,0])+'.jpg')
-        image = io.imread(img_name)
-        landmark_id = self.landmarks_frame.iloc[idx,2]
-        sample = {'image':image, 'landmark_id':landmark_id}
+        try:
+            image = io.imread(img_name)
+            landmark_id = self.landmarks_frame.iloc[idx,2]
+            sample = {'image':image, 'landmark_id':landmark_id}
 
-        if self.transform:
-            sample = self.transform(sample)
+            if self.transform:
+                sample = self.transform(sample)
 
-        return sample
+            return sample
+        except IOError:
+            print(img_name,"not found")
 
 class Rescale(object):
     """
@@ -118,31 +122,35 @@ def show_landmarks_batch(sample_batch):
 
 
 if __name__ == "__main__":
-    landmarks_dataset = LandmarkDataset(csv_file='data/train.csv', root_dir='data/train',
+    landmarks_dataset = LandmarkDataset(csv_file='sample/sample_train.csv', root_dir='sample/train',
            transform=transforms.Compose([
                Rescale((123,245)),
                RandomCrop(128),
                ToTensor()
                ]))
-
+    """
     for i in range(len(landmarks_dataset)):
         sample = landmarks_dataset[i]
-        print(i, sample['image'].shape,sample['landmark_id'])
+        print(i, sample['image'].shape,sample['landmark_id'],"HERE@@")
 
         if i==3:
             break
-
+    """
     dataloader = DataLoader(landmarks_dataset, batch_size=8,shuffle=False,num_workers=4)
+    pdb.set_trace()
     for i_batch, sample_batch in enumerate(dataloader):
-        print(i_batch, sample_batch['image'].size(), sample_batch['landmark_id'])
+        try:
+            print(i_batch, sample_batch['image'].size(), sample_batch['landmark_id'],"HERE")
 
-        #observe 5th batch
-        if i_batch == 4:
-            plt.figure()
-            show_landmarks_batch(sample_batch)
-            plt.show()
-            break
-
+            #observe 5th batch
+            if i_batch == 5:
+                pdb.set_trace()
+                plt.figure()
+                show_landmarks_batch(sample_batch)
+                plt.show()
+                break
+        except TypeError:
+            print("skipping missing images")
 
 
 
