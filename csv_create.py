@@ -8,8 +8,8 @@ for path, dirs, files in os.walk("/home/pramod/work/google-landmark-retrieval-ch
             #name = filenames.split(".")
             w.writerow(filenames)
 """
-f=open("/home/pramod/work/google-landmark-retrieval-challenge-PyTorch/data/train_final.csv",'r+')
+f=open("/home/pramod/work/google-landmark-retrieval-challenge-PyTorch/sample/train_final.csv",'r+')
 w=csv.writer(f)
-for path, dirs, files in os.walk("/home/pramod/work/google-landmark-retrieval-challenge-PyTorch/data/train/"):
+for path, dirs, files in os.walk("/home/pramod/work/google-landmark-retrieval-challenge-PyTorch/sample/train/"):
     for filename in files:
         w.writerow([filename])

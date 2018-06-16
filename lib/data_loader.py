@@ -122,7 +122,7 @@ def show_landmarks_batch(sample_batch):
 
 
 if __name__ == "__main__":
-    landmarks_dataset = LandmarkDataset(csv_file='sample/sample_train.csv', root_dir='sample/train',
+    landmarks_dataset = LandmarkDataset(csv_file='sample/train_clean.csv', root_dir='sample/train',
            transform=transforms.Compose([
                Rescale((123,245)),
                RandomCrop(128),
@@ -137,14 +137,14 @@ if __name__ == "__main__":
             break
     """
     dataloader = DataLoader(landmarks_dataset, batch_size=8,shuffle=False,num_workers=4)
-    pdb.set_trace()
+    #pdb.set_trace()
     for i_batch, sample_batch in enumerate(dataloader):
         try:
             print(i_batch, sample_batch['image'].size(), sample_batch['landmark_id'],"HERE")
 
             #observe 5th batch
             if i_batch == 5:
-                pdb.set_trace()
+                #pdb.set_trace()
                 plt.figure()
                 show_landmarks_batch(sample_batch)
                 plt.show()
