@@ -120,27 +120,41 @@ def show_landmarks_batch(sample_batch):
     grid = utils.make_grid(image_batch)
     plt.imshow(grid.numpy().transpose((1,2,0)))
 
+def create_tr_te_transform():
+    create_transform = {}
+
+    print("*************Train Transform *************")
+    transfrom_train = transfoms.Compose([
+               Rescale((128,128)),
+               RandomCrop(64),
+               ToTensor()
+               ])
+    create_transform["train"]=transfrom_train
+
+    print("*************Test Transform *************")
+    transfrom_test = transfoms.Compose([
+               Rescale((128,128)),
+               RandomCrop(64),
+               ToTensor()
+               ])
+    create_transform["test"]=transfrom_test
+
+    return create_transform
+
 
 if __name__ == "__main__":
-    landmarks_dataset = LandmarkDataset(csv_file='sample/train_clean.csv', root_dir='sample/train',
-           transform=transforms.Compose([
-               Rescale((123,245)),
-               RandomCrop(128),
-               ToTensor()
-               ]))
-    """
-    for i in range(len(landmarks_dataset)):
-        sample = landmarks_dataset[i]
-        print(i, sample['image'].shape,sample['landmark_id'],"HERE@@")
+    landmarks_dataset_tr = LandmarkDataset(csv_file='sample/train_clean.csv', root_dir='sample/train',
+           transform=create_transform["train"])
+    train_dataloader = DataLoader(landmarks_dataset_tr, batch_size=16,shuffle=False,num_workers=4)
 
-        if i==3:
-            break
-    """
-    dataloader = DataLoader(landmarks_dataset, batch_size=8,shuffle=False,num_workers=4)
+    landmarks_dataset_te = LandmarkDataset(csv_file='sample/train_clean.csv', root_dir='sample/train',
+           transform=create_transform["test"])
+    test_dataloader = DataLoader(landmarks_dataset_te, batch_size=16,shuffle=False,num_workers=4)
+
     #pdb.set_trace()
     for i_batch, sample_batch in enumerate(dataloader):
         try:
-            print(i_batch, sample_batch['image'].size(), sample_batch['landmark_id'],"HERE")
+            print(i_batch, sample_batch['image'].size(), sample_batch['landmark_id'])
 
             #observe 5th batch
             if i_batch == 5:
@@ -207,4 +221,10 @@ print("Image Category: {}".format(landmark_id))
         ax.set_title(type(trnsfm).__name__)
         show_landmarks(**transformed_sample)
     plt.show()
+    for i in range(len(landmarks_dataset)):
+        sample = landmarks_dataset[i]
+        print(i, sample['image'].shape,sample['landmark_id'],"HERE@@")
+
+        if i==3:
+            break
 """
