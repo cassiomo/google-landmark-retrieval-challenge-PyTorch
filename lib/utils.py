@@ -1,13 +1,25 @@
 import pandas as pd
-
-def make_data_folder():
-    df=pd.read_csv("sample/sample_train.csv")
-    folder_name = []
+import os
+import shutil
+import pdb
+def make_data_folder(mode):
+    csv_file = "sample/"+mode+"_clean.csv"
+    df=pd.read_csv(csv_file)
+    print(df.head())
+    directory= "sample/ImageData/"
+    pdb.set_trace()
     for index,rows in df.iterrows():
-        folder_name.append(rows['landmarks_id'])
-     #   print(class_)
-    return folder_name
+        img_folder =directory+str(rows['landmark_id'])
+        if not os.path.exists(img_folder):
+            print("Creating Directory {}".format(img_folder))
+            os.makedirs(img_folder)
+        else:
+            print("Folder {} exists!".format(img_folder))
+        img = "sample/"+mode+"/"+str(rows["id"])+".jpg"
+        print("Copying image {}".format(img))
+        shutil.copy2(img,img_folder)
+
+
 
 if __name__=="__main__":
-    x=make_data_folder()
-    print(x)
+    make_data_folder("train")
