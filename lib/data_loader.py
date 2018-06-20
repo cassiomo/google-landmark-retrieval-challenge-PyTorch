@@ -124,7 +124,7 @@ def create_tr_te_transform():
     create_transform = {}
 
     print("*************Train Transform *************")
-    transfrom_train = transfoms.Compose([
+    transfrom_train = transforms.Compose([
                Rescale((128,128)),
                RandomCrop(64),
                ToTensor()
@@ -132,7 +132,7 @@ def create_tr_te_transform():
     create_transform["train"]=transfrom_train
 
     print("*************Test Transform *************")
-    transfrom_test = transfoms.Compose([
+    transfrom_test = transforms.Compose([
                Rescale((128,128)),
                RandomCrop(64),
                ToTensor()
@@ -143,6 +143,7 @@ def create_tr_te_transform():
 
 
 if __name__ == "__main__":
+    create_transform = create_tr_te_transform()
     landmarks_dataset_tr = LandmarkDataset(csv_file='sample/train_clean.csv', root_dir='sample/train',
            transform=create_transform["train"])
     train_dataloader = DataLoader(landmarks_dataset_tr, batch_size=16,shuffle=False,num_workers=4)
@@ -152,7 +153,7 @@ if __name__ == "__main__":
     test_dataloader = DataLoader(landmarks_dataset_te, batch_size=16,shuffle=False,num_workers=4)
 
     #pdb.set_trace()
-    for i_batch, sample_batch in enumerate(dataloader):
+    for i_batch, sample_batch in enumerate(train_dataloader):
         try:
             print(i_batch, sample_batch['image'].size(), sample_batch['landmark_id'])
 
