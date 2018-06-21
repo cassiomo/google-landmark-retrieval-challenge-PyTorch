@@ -15,7 +15,11 @@ from torchvision.transforms import functional as F
 
 def show_landmarks(image,landmark_id,text=False):
     """Show image with landmark ids"""
-    plt.imshow(image)
+    if isinstance(sample["image"],torch.Tensor):
+            tensor_to_pil=transforms.ToPILImage()
+            plt.imshow(tensor_to_pil(image))
+    else:
+            plt.imshow(image)
     if text:
         plt.text(500,1000,landmark_id, fontsize=10)
     plt.show()
@@ -43,48 +47,49 @@ class LandmarksDataset(Dataset):
         sample = {"image":image,"landmark_id":landmark_id}
 
         if self.transform:
-            sample["image"] = self.transform(sample["image"])
+            sample = self.transform(sample)
         return sample
 class ToTensor(object):
     """
     Convert PIL Image and ndarray to tensor to Tensor
     """
     def __call__(self,sample):
-        image, landmarks_id = sample["image"],sample["landmark_id"]
+        image, landmark_id = sample["image"],sample["landmark_id"]
         pil_to_tensor = transforms.ToTensor()
         return {"image":pil_to_tensor(image),
-                "landmark_id"=torch.from_numpy(landmark_id)}
+                "landmark_id":torch.from_numpy(np.array(landmark_id))}
 
 
 if __name__ == "__main__":
 
-landmarks_dataset = LandmarksDataset(csv_file="sample/train_clean.csv",
-    root_dir="sample/train/",
-    transform=transforms.Compose([
-        ToTensor()])
-    )
+    landmarks_dataset = LandmarksDataset(csv_file="sample/train_clean.csv",
+        root_dir="sample/train/",
+        transform=transforms.Compose([
+            ToTensor()
+            ]))
 
-fig = plt.figure()
-for i in range(len(landmarks_dataset)):
-    sample = landmarks_dataset[i]
-    print("Sample Index={}".format(i))
-    print("Image Size: {}".format(sample['image'].size),
-            "Landmark ID: {}".format(sample["landmark_id"]))
-    print(type(sample["image"]))
-    print(type(sample["landmark_id"]))
-    ax = plt.subplot(1,4,i+1)
-    plt.tight_layout()
-    ax.axis("off")
-    show_landmarks(**sample)
-    if i==2:
-        break
-"""
-landmarks_frame = pd.read_csv("sample/train_clean.csv")
-n = 65
-img_name = str(landmarks_frame.iloc[n,0])+".jpg"
-landmarks = landmarks_frame.iloc[n,2]
+    fig = plt.figure()
+    for i in range(len(landmarks_dataset)):
+        sample = landmarks_dataset[i]
+        print("Sample Index={}".format(i))
+        print("Image Size: {}".format(sample['image'].size),
+                "Landmark ID: {}".format(sample["landmark_id"]))
+        print(type(sample["image"]))
+        print(type(sample["landmark_id"]))
 
-plt.figure()
-show_landmarks(Image.open(os.path.join("sample/train/",img_name)),landmarks)
-plt.show()
-"""
+        ax = plt.subplot(1,4,i+1)
+        plt.tight_layout()
+        ax.axis("off")
+        show_landmarks(**sample)
+        if i==2:
+            break
+    """
+    landmarks_frame = pd.read_csv("sample/train_clean.csv")
+    n = 65
+    img_name = str(landmarks_frame.iloc[n,0])+".jpg"
+    landmarks = landmarks_frame.iloc[n,2]
+
+    plt.figure()
+    show_landmarks(Image.open(os.path.join("sample/train/",img_name)),landmarks)
+    plt.show()
+    """
