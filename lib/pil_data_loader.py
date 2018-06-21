@@ -15,7 +15,6 @@ from torchvision.transforms import functional as F
 
 def show_landmarks(image,landmark_id,text=False):
     """Show image with landmark ids"""
-    #image_transform = transforms.ToTensor()
     plt.imshow(image)
     if text:
         plt.text(500,1000,landmark_id, fontsize=10)
@@ -50,9 +49,21 @@ class ToTensor(object):
     """
     Convert PIL Image and ndarray to tensor to Tensor
     """
-    pass
+    def __call__(self,sample):
+        image, landmarks_id = sample["image"],sample["landmark_id"]
+        pil_to_tensor = transforms.ToTensor()
+        return {"image":pil_to_tensor(image),
+                "landmark_id"=torch.from_numpy(landmark_id)}
+
+
+if __name__ == "__main__":
+
 landmarks_dataset = LandmarksDataset(csv_file="sample/train_clean.csv",
-    root_dir="sample/train/")
+    root_dir="sample/train/",
+    transform=transforms.Compose([
+        ToTensor()])
+    )
+
 fig = plt.figure()
 for i in range(len(landmarks_dataset)):
     sample = landmarks_dataset[i]
